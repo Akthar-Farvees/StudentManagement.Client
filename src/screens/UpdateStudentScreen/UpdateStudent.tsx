@@ -1,40 +1,49 @@
 import React, { useEffect, useState } from "react";
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, ActivityIndicator, Alert, Button } from "react-native";
+import {
+  View,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  StyleSheet,
+  ActivityIndicator,
+  Alert,
+  Button,
+} from "react-native";
 import axios from "axios";
 import { useForm, Controller } from "react-hook-form";
 import DropDownPicker from "react-native-dropdown-picker";
-import DateTimePicker from '@react-native-community/datetimepicker';
+import DateTimePicker from "@react-native-community/datetimepicker";
 import DatePickerField from "@/components/HomeScreenComponents/DatePickerComponent";
-
+import { MotiView } from "moti";
 
 const grades = [
   {
     id: 1,
-    grade: 'A'
+    grade: "A",
   },
   {
     id: 2,
-    grade: 'B'
+    grade: "B",
   },
   {
     id: 3,
-    grade: 'C'
+    grade: "C",
   },
   {
     id: 4,
-    grade: 'D'
+    grade: "D",
   },
   {
     id: 5,
-    grade: 'F'
+    grade: "F",
   },
-]
-
+];
 
 const EditScreen = ({ route, navigation }) => {
+  const { studentRefreshData, refreshData } = route.params;
   const { itemId, setData } = route.params;
-  const { student }  = route.params;
-  
+  const { student } = route.params;
+
   const { control, handleSubmit, setValue } = useForm();
   const [loading, setLoading] = useState(true);
   const [openCourse, setOpenCourse] = useState(false);
@@ -44,6 +53,8 @@ const EditScreen = ({ route, navigation }) => {
   const [openGrade, setOpenGrade] = useState(false);
   const [selectedGrade, setSelectedGrade] = useState(null);
   const [gradeItems, setGradeItems] = useState([]);
+
+  const [showSuccess, setShowSuccess] = useState(false);
 
   useEffect(() => {
     // Fetch course data from API
@@ -66,20 +77,21 @@ const EditScreen = ({ route, navigation }) => {
       .catch((error) => console.error("Error fetching courses:", error));
   }, []);
 
-
   useEffect(() => {
     console.log(student.StudentID);
-    
+
     const fetchItem = async () => {
       try {
-        const response = await axios.get(`http://192.168.112.176:5000/api/students/getDetailsByStudent/${student.StudentID}`);
+        const response = await axios.get(
+          `http://192.168.112.176:5000/api/students/getDetailsByStudent/${student.StudentID}`
+        );
         console.log(response.data[0].DOB);
         const studentResponseData = response.data[0];
 
         if (studentResponseData.DOB) {
           setValue("DOB", new Date(studentResponseData.DOB));
         }
-        
+
         setValue("FirstName", studentResponseData.FirstName);
         setValue("LastName", studentResponseData.LastName);
         setSelectedGrade(studentResponseData.Grade);
@@ -97,9 +109,8 @@ const EditScreen = ({ route, navigation }) => {
 
   const onUpdate = async (updatedData) => {
     try {
-
       const dataToSend = {
-        newCourseName: selectedCourse, 
+        newCourseName: selectedCourse,
         studentDetails: {
           firstName: updatedData.FirstName,
           lastName: updatedData.LastName,
@@ -107,22 +118,29 @@ const EditScreen = ({ route, navigation }) => {
           grade: selectedGrade,
         },
       };
-  
-      // Send the PUT request to update the student course
-      await axios.put(`http://192.168.112.176:5000/api/students/updateStudentCourse/${itemId}`, dataToSend);
-  
-      // Refresh the student data (or navigate back)
-      const response = await axios.get("http://192.168.112.176:5000/api/students/getCoursesStudents");
-      setData(response.data);
-  
-      Alert.alert("Success", "Student details updated successfully!");
-      navigation.goBack();
+      const studentId = String(student.StudentID).trim();
+      console.log("Final Student Id:", studentId);
+
+      console.log(dataToSend);
+      await axios.put(
+        `http://192.168.112.176:5000/api/students/updateStudentCourse/${studentId}`,
+        dataToSend
+      );
+
+      setShowSuccess(true);
+
+     
+      setTimeout(() => {
+        setShowSuccess(false);
+        
+        refreshData();
+        navigation.goBack();
+      }, 1000); 
     } catch (error) {
       console.error("Error updating student data:", error);
       Alert.alert("Error", "Failed to update student details.");
     }
   };
-  
 
   if (loading) {
     return (
@@ -134,6 +152,29 @@ const EditScreen = ({ route, navigation }) => {
 
   return (
     <View style={styles.container}>
+      {showSuccess && (
+        <MotiView
+          from={{ translateY: 100, opacity: 0 }}
+          animate={{ translateY: 0, opacity: 1 }}
+          transition={{ type: "timing", duration: 500 }}
+          style={{
+            position: "absolute",
+            left: 20,
+            right: 20,
+            backgroundColor: "green",
+            padding: 15,
+            borderRadius: 10,
+            justifyContent: "center",
+            alignItems: "center",
+            zIndex: 100, 
+          }}
+        >
+          <Text style={{ color: "white", fontWeight: "bold" }}>
+            Student details updated successfully!
+          </Text>
+        </MotiView>
+      )}
+
       <Text style={styles.title}>Edit User</Text>
 
       <Text style={styles.label}>First Name</Text>
@@ -141,7 +182,11 @@ const EditScreen = ({ route, navigation }) => {
         control={control}
         name="FirstName"
         render={({ field: { onChange, value } }) => (
-          <TextInput style={styles.input} value={value} onChangeText={onChange} />
+          <TextInput
+            style={styles.input}
+            value={value}
+            onChangeText={onChange}
+          />
         )}
       />
 
@@ -150,7 +195,11 @@ const EditScreen = ({ route, navigation }) => {
         control={control}
         name="LastName"
         render={({ field: { onChange, value } }) => (
-          <TextInput style={styles.input} value={value} onChangeText={onChange} />
+          <TextInput
+            style={styles.input}
+            value={value}
+            onChangeText={onChange}
+          />
         )}
       />
 
@@ -166,7 +215,7 @@ const EditScreen = ({ route, navigation }) => {
         style={styles.dropdown}
         dropDownContainerStyle={styles.dropdownContainer}
         dropDownDirection="BOTTOM"
-        modalAnimationType="slide"  
+        modalAnimationType="slide"
       />
 
       <DatePickerField
@@ -191,7 +240,6 @@ const EditScreen = ({ route, navigation }) => {
         modalAnimationType="slide"
       />
 
-
       <TouchableOpacity style={styles.button} onPress={handleSubmit(onUpdate)}>
         <Text style={styles.buttonText}>Update</Text>
       </TouchableOpacity>
@@ -199,11 +247,16 @@ const EditScreen = ({ route, navigation }) => {
   );
 };
 
-
 const styles = StyleSheet.create({
   container: { flex: 1, padding: 20, backgroundColor: "#f8f9fa" },
   loader: { flex: 1, justifyContent: "center", alignItems: "center" },
-  title: { fontSize: 24, fontWeight: "bold", textAlign: "center", marginBottom: 20, color: "#333" },
+  title: {
+    fontSize: 24,
+    fontWeight: "bold",
+    textAlign: "center",
+    marginBottom: 20,
+    color: "#333",
+  },
   label: { fontSize: 16, fontWeight: "bold", marginBottom: 5 },
   input: {
     backgroundColor: "#fff",
@@ -213,16 +266,28 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: "#ddd",
   },
-  button: { backgroundColor: "green", color: 'white' , padding: 15, borderRadius: 10, alignItems: "center", marginTop: 45 },
+  button: {
+    backgroundColor: "green",
+    color: "white",
+    padding: 15,
+    borderRadius: 10,
+    alignItems: "center",
+    marginTop: 45,
+  },
   buttonText: { color: "#fff", fontSize: 18, fontWeight: "bold" },
-  dropdown: { marginTop: 5, borderColor: "#ccc", zIndex: 1000, elevation: 1},
-  dropdownContainer: { borderColor: "#ccc" , zIndex: 1001,
+  dropdown: { marginTop: 5, borderColor: "#ccc", zIndex: 1000, elevation: 1 },
+  dropdownContainer: {
+    borderColor: "#ccc",
+    zIndex: 1001,
     elevation: 3,
-    position: "absolute"},
-  dropdownContainers: { borderColor: "#ccc" , zIndex: 1001,
+    position: "absolute",
+  },
+  dropdownContainers: {
+    borderColor: "#ccc",
+    zIndex: 1001,
     elevation: 3,
-    position: "absolute"},
+    position: "absolute",
+  },
 });
 
 export default EditScreen;
-

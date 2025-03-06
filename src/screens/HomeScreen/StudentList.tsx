@@ -19,31 +19,43 @@ const StudentList = () => {
   const navigation = useNavigation<NavigationProp>();
   const [loading, setLoading] = useState(true);
   const [students, setStudents] = useState<Student[]>([]);
+  const [errorMessage, setErrorMessage] = useState<string>("");
 
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const response: AxiosResponse<Student[]> = await axios.get(
-          "http://192.168.112.176:5000/api/student-course/getCoursesStudents"
-        );
+  const fetchData = async () => {
+    try {
+      const response: AxiosResponse<Student[]> = await axios.get(
+        "http://192.168.112.176:5000/api/student-course/getCoursesStudents"
+      );
+      if (response.status === 404) {
+        return <SkeletonLoader />
+      } else {
         setStudentData(response.data);
-      } catch (error) {
-        console.error("Error fetching data:", error);
-      } finally {
-        setLoading(false);
       }
-    };
+    } catch (error) {
+      console.error("Error fetching data:", error);
+      if (error.response && error.response.status === 404) {
+        return <SkeletonLoader />
+      } else {
+        setErrorMessage("An error occurred while fetching data");
+      }
+    } finally {
+      setLoading(false);
+    }
+  };
 
-    fetchData();
-  }, []);
 
   const handleStudentPress = (student: Student) => {
-    navigation.navigate("UpdateStudentForm", { student  });
+    navigation.navigate("UpdateStudentForm", { student, refreshData: fetchData });
   };
 
   const renderItem = ({ item }: { item: Student }) => (
     <StudentItem student={item} onPress={() => handleStudentPress(item)} />
   );
+
+  useEffect(() => {
+    fetchData(); 
+  }, []);
+
 
   return (
     <SafeAreaView style={styles.container}>
