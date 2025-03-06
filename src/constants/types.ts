@@ -35,3 +35,12 @@ export type FormValues = {
   FirstName: string;
   LastName: string;
 };
+
+
+export type ConfirmationModalProps {
+  visible: boolean
+  onClose: () => void
+  onConfirm: () => void
+  title: string
+  message: string
+}

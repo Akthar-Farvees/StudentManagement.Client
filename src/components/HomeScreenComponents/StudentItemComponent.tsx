@@ -1,13 +1,14 @@
 import React, { useEffect, useState } from "react";
-import { View, Text, StyleSheet, Pressable } from "react-native";
+import { View, Text, StyleSheet, Pressable, TouchableOpacity } from "react-native";
 import { MotiView } from "moti";
 import { Easing } from "react-native-reanimated";
 import { Student } from "@/constants/types";
+import Icon from 'react-native-vector-icons/MaterialIcons';
 
 
 const MoView = MotiView;
 
-const StudentItem = ({ student, onPress }: { student: Student; onPress: () => void }) => {
+const StudentItem = ({ student, onPress, handleDelete }: { student: Student; onPress: () => void; handleDelete: () => void;  }) => {
 
   const calculateAge = (dob: string): number => {
     const birthDate = new Date(dob);
@@ -24,7 +25,6 @@ const StudentItem = ({ student, onPress }: { student: Student; onPress: () => vo
 
   const age = calculateAge(student.DOB);
 
-  
 
   return (
     <Pressable onPress={onPress} style={({ pressed }) => [styles.cardPressable, pressed && styles.cardPressed]}>
@@ -69,7 +69,9 @@ const StudentItem = ({ student, onPress }: { student: Student; onPress: () => vo
 
       <View style={styles.courseDurationContainer}>
           <Text style={styles.courseDuration}>Duration: {student.CourseDuration} Months</Text>
-          <Text style={styles.studentDelete}>Delete</Text>
+          <TouchableOpacity onPress={handleDelete} style={styles.studentDelete}>
+            <Icon name="delete" size={26} color="red" />
+          </TouchableOpacity>
       </View>
     </MoView>
     </Pressable>
@@ -154,6 +156,9 @@ const styles = StyleSheet.create({
     display: "flex",
     flexDirection: "row",
     justifyContent: "space-between",
+  },
+  studentDelete: {
+    padding: 3,
   }
 });
 

@@ -13,13 +13,16 @@ import SkeletonLoader from "@/components/HomeScreenComponents/SkeletonLoader";
 import { useNavigation } from "@react-navigation/native";
 import { NavigationProp, Student } from "@/constants/types";
 import axios, { AxiosResponse } from "axios";
+import ConfirmationModal from "@/components/HomeScreenComponents/ConfirmationModal";
 
 const StudentList = () => {
   const [studentData, setStudentData] = useState([]);
   const navigation = useNavigation<NavigationProp>();
   const [loading, setLoading] = useState(true);
-  const [students, setStudents] = useState<Student[]>([]);
   const [errorMessage, setErrorMessage] = useState<string>("");
+
+  const [modalVisible, setModalVisible] = useState(false);
+  const [studentToDelete, setStudentToDelete] = useState<string | null>(null);
 
   const fetchData = async () => {
     try {
@@ -27,14 +30,14 @@ const StudentList = () => {
         "http://192.168.112.176:5000/api/student-course/getCoursesStudents"
       );
       if (response.status === 404) {
-        return <SkeletonLoader />
+        return <SkeletonLoader />;
       } else {
         setStudentData(response.data);
       }
     } catch (error) {
       console.error("Error fetching data:", error);
       if (error.response && error.response.status === 404) {
-        return <SkeletonLoader />
+        return <SkeletonLoader />;
       } else {
         setErrorMessage("An error occurred while fetching data");
       }
@@ -43,19 +46,50 @@ const StudentList = () => {
     }
   };
 
+  const confirmDeleteStudent = (studentId: string) => {
+    setStudentToDelete(studentId);
+    setModalVisible(true);
+  };
 
+  const handleDeleteStudent = async () => {
+    if (!studentToDelete) return;
+
+    try {
+      console.log("Deleting student:", studentToDelete);
+
+      const response = await axios.delete(
+        `http://192.168.112.176:5000/api/students/deleteStudent/${studentToDelete}`
+      );
+      if (response.status === 200) {
+        setStudentData((prevData) =>
+          prevData.filter((student) => student.StudentID !== studentToDelete)
+        );
+      } else {
+        alert("Failed to delete the student.");
+      }
+    } catch (error) {
+      console.error("Error deleting student:", error);
+      alert("An error occurred while deleting the student.");
+    }
+  };
   const handleStudentPress = (student: Student) => {
-    navigation.navigate("UpdateStudentForm", { student, refreshData: fetchData });
+    navigation.navigate("UpdateStudentForm", {
+      student,
+      refreshData: fetchData,
+    });
   };
 
   const renderItem = ({ item }: { item: Student }) => (
-    <StudentItem student={item} onPress={() => handleStudentPress(item)} />
+    <StudentItem
+      student={item}
+      onPress={() => handleStudentPress(item)}
+      handleDelete={() => confirmDeleteStudent(item.StudentID)}
+    />
   );
 
   useEffect(() => {
-    fetchData(); 
+    fetchData();
   }, []);
-
 
   return (
     <SafeAreaView style={styles.container}>
@@ -80,6 +114,20 @@ const StudentList = () => {
             showsVerticalScrollIndicator={false}
           />
         )}
+
+        <View style={styles.confirmationModal}>
+        <ConfirmationModal
+          visible={modalVisible}
+          onClose={() => {
+            setModalVisible(false);
+            setStudentToDelete(null);
+          }}
+          onConfirm={handleDeleteStudent}
+          title="Delete Student"
+          message="Are you sure you want to delete this student? This action cannot be undone."
+        />
+        </View>
+
       </View>
     </SafeAreaView>
   );
@@ -88,6 +136,11 @@ const StudentList = () => {
 const { width } = Dimensions.get("window");
 
 const styles = StyleSheet.create({
+  confirmationModal: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+  },
   container: {
     flex: 1,
     backgroundColor: "#f5f5f7",
