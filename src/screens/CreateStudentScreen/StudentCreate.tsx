@@ -117,7 +117,7 @@ const navigation = useNavigation();
   
 
   return (
-    //   <ScrollView style={styles.scrollView} contentContainerStyle={{ flexGrow: 1 }}>
+      <ScrollView style={styles.scrollView} contentContainerStyle={{ flexGrow: 1 }}>
         <View style={styles.container}>
           <Text style={styles.title}>Create Student</Text>
           <Text style={styles.label}>First Name</Text>
@@ -213,7 +213,7 @@ const navigation = useNavigation();
             <Text style={styles.buttonText}>Submit</Text>
           </TouchableOpacity>
         </View>
-    //   </ScrollView>
+      </ScrollView>
   );
 };
 
