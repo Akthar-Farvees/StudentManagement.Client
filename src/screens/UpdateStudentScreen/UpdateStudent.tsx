@@ -7,14 +7,13 @@ import {
   StyleSheet,
   ActivityIndicator,
   Alert,
-  Button,
 } from "react-native";
 import axios from "axios";
 import { useForm, Controller } from "react-hook-form";
 import DropDownPicker from "react-native-dropdown-picker";
-import DateTimePicker from "@react-native-community/datetimepicker";
 import DatePickerField from "@/components/HomeScreenComponents/DatePickerComponent";
 import { MotiView } from "moti";
+import { FormValues } from "@/constants/types";
 
 const grades = [
   {
@@ -44,7 +43,12 @@ const EditScreen = ({ route, navigation }) => {
   const { itemId, setData } = route.params;
   const { student } = route.params;
 
-  const { control, handleSubmit, setValue } = useForm();
+  const {
+    control,
+    handleSubmit,
+    setValue,
+    formState: { errors },
+  } = useForm<FormValues>();
   const [loading, setLoading] = useState(true);
   const [openCourse, setOpenCourse] = useState(false);
   const [selectedCourse, setSelectedCourse] = useState(null);
@@ -129,13 +133,12 @@ const EditScreen = ({ route, navigation }) => {
 
       setShowSuccess(true);
 
-     
       setTimeout(() => {
         setShowSuccess(false);
-        
+
         refreshData();
         navigation.goBack();
-      }, 1000); 
+      }, 1000);
     } catch (error) {
       console.error("Error updating student data:", error);
       Alert.alert("Error", "Failed to update student details.");
@@ -166,7 +169,7 @@ const EditScreen = ({ route, navigation }) => {
             borderRadius: 10,
             justifyContent: "center",
             alignItems: "center",
-            zIndex: 100, 
+            zIndex: 100,
           }}
         >
           <Text style={{ color: "white", fontWeight: "bold" }}>
@@ -181,6 +184,24 @@ const EditScreen = ({ route, navigation }) => {
       <Controller
         control={control}
         name="FirstName"
+        rules={{ required: "First name is required" }}
+        render={({ field: { onChange, value } }) => (
+          <TextInput
+            style={styles.input}
+            value={value}
+            onChangeText={onChange}
+          />
+        )}
+      />
+      {errors.FirstName?.message && (
+        <Text style={styles.errorText}>*{errors.FirstName.message}</Text>
+      )}
+
+      <Text style={styles.label}>Email</Text>
+      <Controller
+        control={control}
+        name="LastName"
+        rules={{ required: "Last name is required" }}
         render={({ field: { onChange, value } }) => (
           <TextInput
             style={styles.input}
@@ -190,18 +211,9 @@ const EditScreen = ({ route, navigation }) => {
         )}
       />
 
-      <Text style={styles.label}>Email</Text>
-      <Controller
-        control={control}
-        name="LastName"
-        render={({ field: { onChange, value } }) => (
-          <TextInput
-            style={styles.input}
-            value={value}
-            onChangeText={onChange}
-          />
-        )}
-      />
+      {errors.LastName?.message && (
+        <Text style={styles.errorText}>*{errors.LastName?.message}</Text>
+      )}
 
       <Text style={styles.label}>Select Course</Text>
       <DropDownPicker
@@ -287,6 +299,13 @@ const styles = StyleSheet.create({
     zIndex: 1001,
     elevation: 3,
     position: "absolute",
+  },
+
+  // Error Text
+  errorText: {
+    color: "red",
+    marginBottom: 15,
+    marginTop: -10,
   },
 });
 

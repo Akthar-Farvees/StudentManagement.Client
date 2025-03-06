@@ -29,3 +29,9 @@ export type RootStackParamList = {
 
 
 export type NavigationProp = NativeStackNavigationProp<RootStackParamList, 'StudentList'>;
+
+
+export type FormValues = {
+  FirstName: string;
+  LastName: string;
+};
