@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import {
   View,
   Text,
@@ -10,7 +10,7 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 import StudentItem from "@/components/HomeScreenComponents/StudentItemComponent";
 import SkeletonLoader from "@/components/HomeScreenComponents/SkeletonLoader";
-import { useNavigation } from "@react-navigation/native";
+import { useFocusEffect, useNavigation } from "@react-navigation/native";
 import { NavigationProp, Student } from "@/constants/types";
 import axios, { AxiosResponse } from "axios";
 import ConfirmationModal from "@/components/HomeScreenComponents/ConfirmationModal";
@@ -87,9 +87,12 @@ const StudentList = () => {
     />
   );
 
-  useEffect(() => {
-    fetchData();
-  }, []);
+
+  useFocusEffect(
+    useCallback(() => {
+      fetchData(); 
+    }, [])
+  );
 
   return (
     <SafeAreaView style={styles.container}>

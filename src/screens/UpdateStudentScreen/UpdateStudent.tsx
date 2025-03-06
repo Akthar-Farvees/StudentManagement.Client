@@ -178,7 +178,7 @@ const EditScreen = ({ route, navigation }) => {
         </MotiView>
       )}
 
-      <Text style={styles.title}>Edit User</Text>
+      <Text style={styles.title}>Edit Student</Text>
 
       <Text style={styles.label}>First Name</Text>
       <Controller
@@ -197,7 +197,7 @@ const EditScreen = ({ route, navigation }) => {
         <Text style={styles.errorText}>*{errors.FirstName.message}</Text>
       )}
 
-      <Text style={styles.label}>Email</Text>
+      <Text style={styles.label}>Last Name</Text>
       <Controller
         control={control}
         name="LastName"
